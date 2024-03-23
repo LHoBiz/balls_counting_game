@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ball Count Game</title>
+<style>
+    body, html {
+        height: 100%;
+        margin: 0;
+        padding: 0;
+    }
+    .container {
+        display: flex;
+        justify-content: space-around;
+        margin-top: 50px;
+        height: 80vh; /* Set height to 80% of the viewport height */
+    }
+    .box {
+        width: 50%;
+        height: 100%;
+        border-right: 2px solid black; /* Add a border at the right */
+        position: relative;
+        cursor: pointer;
+    }
+    .box:last-child {
+        border-right: none; /* Remove the border from the last box */
+    }
+    canvas {
+        width: 100%;
+        height: 100%;
+        position: absolute;
+        top: 0;
+        left: 0;
+    }
+    .result {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        font-size: 3em;
+    }
+    .correct {
+        color: green;
+    }
+    .incorrect {
+        color: red;
+    }
+</style>
+</head>
+<body>
+
+<div class="container">
+    <div class="box" id="leftBox">
+        <canvas id="leftCanvas"></canvas>
+    </div>
+    <div class="box" id="rightBox">
+        <canvas id="rightCanvas"></canvas>
+    </div>
+</div>
+<div class="result" id="result"></div>
+
+<script>
+
+function generateRandomBalls(canvasId, number, color, size, maxWidth, maxHeight) {
+    const canvas = document.getElementById(canvasId);
+    const ctx = canvas.getContext('2d');
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    const balls = [];
+
+    const diameter = size * 20; // Diameter of the ball
+
+    for (let i = 0; i < number; i++) {
+        let x, y, radius;
+        do {
+            x = Math.random() * (maxWidth - diameter * 2) + diameter; // Random x position within the canvas width
+            y = Math.random() * (maxHeight - diameter * 2) + diameter; // Random y position within the canvas height
+            radius = size * 10; // Convert size to pixel value
+        } while (x + radius > canvas.width || y + radius > canvas.height); // Ensure the ball is fully within canvas boundaries
+
+        balls.push({ x, y, radius });
+
+        // Draw the ball with a border for debugging
+        ctx.beginPath();
+        ctx.arc(x, y, radius, 0, Math.PI * 2);
+        ctx.fillStyle = color;
+        ctx.fill();
+        ctx.strokeStyle = 'black'; // Add black border
+        ctx.lineWidth = 2; // Border width
+        ctx.stroke();
+        ctx.closePath();
+    }
+
+    setTimeout(() => {
+        ctx.clearRect(0, 0, canvas.width, canvas.height); // Clear the canvas after 3 seconds
+    }, 1000);
+
+    return balls.length;
+}
+
+function displayBalls() {
+    const windowWidth = window.innerWidth;
+    const windowHeight = window.innerHeight;
+
+    document.querySelectorAll('.box').forEach(box => {
+        box.style.width = (windowWidth / 2) + 'px';
+        box.style.height = (windowHeight * 0.8) + 'px'; /* Set height to 80% of the viewport height */
+    });
+
+    let leftBalls, rightBalls;
+
+    do {
+        const colors = ['red', 'blue', 'green', 'yellow'];
+        const leftColor = colors[Math.floor(Math.random() * colors.length)];
+        const rightColor = colors.filter(color => color !== leftColor)[Math.floor(Math.random() * 3)];
+
+        leftBalls = Math.floor(Math.random() * 50) + 1;
+        rightBalls = Math.floor(Math.random() * 50) + 1;
+
+        console.log("Left Balls:", leftBalls, "Right Balls:", rightBalls);
+        console.log("Left Color:", leftColor, "Right Color:", rightColor);
+
+        generateRandomBalls('leftCanvas', leftBalls, leftColor, (Math.random() * (1.5 - 0.5) + 0.5).toFixed(1), windowWidth / 2 - 20, windowHeight * 0.8 - 20);
+        generateRandomBalls('rightCanvas', rightBalls, rightColor, (Math.random() * (1.5 - 0.5) + 0.5).toFixed(1), windowWidth / 2 - 20, windowHeight * 0.8 - 20);
+    } while (leftBalls === rightBalls);
+
+    let isGameOver = false;
+
+    const leftBox = document.getElementById('leftBox');
+    const rightBox = document.getElementById('rightBox');
+
+    leftBox.addEventListener('click', leftBoxClickHandler);
+    rightBox.addEventListener('click', rightBoxClickHandler);
+
+    function leftBoxClickHandler() {
+        if (!isGameOver) {
+            console.log('Left box selected');
+            const result = document.getElementById('result');
+            if (leftBalls > rightBalls) {
+                result.textContent = '✓';
+                result.classList.add('correct');
+            } else {
+                result.textContent = '✗';
+                result.classList.add('incorrect');
+            }
+            isGameOver = true;
+            setTimeout(() => {
+                result.textContent = '';
+                result.classList.remove('correct', 'incorrect');
+                displayBalls();
+            }, 1000);
+        }
+    }
+
+    function rightBoxClickHandler() {
+        if (!isGameOver) {
+            console.log('Right box selected');
+            const result = document.getElementById('result');
+            if (rightBalls > leftBalls) {
+                result.textContent = '✓';
+                result.classList.add('correct');
+            } else {
+                result.textContent = '✗';
+                result.classList.add('incorrect');
+            }
+            isGameOver = true;
+            setTimeout(() => {
+                result.textContent = '';
+                result.classList.remove('correct', 'incorrect');
+                displayBalls();
+            }, 1000);
+        }
+    }
+}
+
+// Start the game
+displayBalls();
+
+
+
+
+</script>
+
+</body>
+</html>
